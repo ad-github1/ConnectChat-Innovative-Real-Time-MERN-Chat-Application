@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const http = require('http');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -16,16 +17,21 @@ if (!process.env.MONGO_URI) {
 
 // MongoDB Connect
 mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
-
 mongoose.connection.on('connected', () => console.log('✅ MongoDB connected'));
 mongoose.connection.on('error', (err) => console.error('❌ MongoDB error:', err));
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
 
-// TEMP placeholder routes (until real routes added)
-app.get("/", (req, res) => {
-  res.send("✅ Backend running successfully!");
+// TEMP placeholder routes
+app.get("/api/test", (req, res) => {
+  res.send("✅ Backend API running successfully!");
+});
+
+// Serve React frontend
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 // SOCKET.IO
@@ -38,18 +44,15 @@ const onlineUsers = {};
 io.on("connection", (socket) => {
   console.log("✅ User connected:", socket.id);
 
-  // User joins chat with username
   socket.on("userJoined", (username) => {
     onlineUsers[socket.id] = username;
     io.emit("onlineUsers", Object.values(onlineUsers));
   });
 
-  // Receive and broadcast messages
   socket.on("sendMessage", (msg) => {
     io.emit("receiveMessage", msg);
   });
 
-  // On disconnect
   socket.on("disconnect", () => {
     delete onlineUsers[socket.id];
     io.emit("onlineUsers", Object.values(onlineUsers));
@@ -57,17 +60,5 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
-server.listen(PORT, () => console.log(` Server running on port ${PORT}`));
-
-const path = require('path');
-
-app.use(express.static(path.join(__dirname, 'frontend/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
-
-// Start server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
