@@ -3,47 +3,71 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const http = require('http');
-const authRoutes = require('./routes/auth');
-const messageRoutes = require('./routes/messages');
 require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });  // Temporarily keep '*' for testing; update to your frontend URL later
 
-// Updated: Remove deprecated Mongoose options
-mongoose.connect(process.env.MONGO_URI);
+// Validate ENV
+if (!process.env.MONGO_URI) {
+  console.error("❌ Missing MONGO_URI in .env");
+  process.exit(1);
+}
 
-// Optional: Add a connection check for debugging
-mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
-mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
+// MongoDB Connect
+mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
 
-app.use(cors());
+mongoose.connection.on('connected', () => console.log('✅ MongoDB connected'));
+mongoose.connection.on('error', (err) => console.error('❌ MongoDB error:', err));
+
+app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
-app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
 
-// Socket.IO for real-time
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
-  // Join a room (e.g., chat room)
-  socket.on('joinRoom', (room) => socket.join(room));
-  
-  // Handle sending messages
-  socket.on('sendMessage', (data) => {
-    io.to(data.room).emit('receiveMessage', data);
+// TEMP placeholder routes (until real routes added)
+app.get("/", (req, res) => {
+  res.send("✅ Backend running successfully!");
+});
+
+// SOCKET.IO
+const io = new Server(server, {
+  cors: { origin: process.env.FRONTEND_URL || '*' }
+});
+
+const onlineUsers = {};
+
+io.on("connection", (socket) => {
+  console.log("✅ User connected:", socket.id);
+
+  // User joins chat with username
+  socket.on("userJoined", (username) => {
+    onlineUsers[socket.id] = username;
+    io.emit("onlineUsers", Object.values(onlineUsers));
   });
-  
-  // Online status (broadcast to all)
-  socket.on('userOnline', (userId) => {
-    socket.broadcast.emit('userStatus', { userId, status: 'online' });
+
+  // Receive and broadcast messages
+  socket.on("sendMessage", (msg) => {
+    io.emit("receiveMessage", msg);
   });
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+
+  // On disconnect
+  socket.on("disconnect", () => {
+    delete onlineUsers[socket.id];
+    io.emit("onlineUsers", Object.values(onlineUsers));
+    console.log("❌ User disconnected:", socket.id);
   });
 });
 
-// Updated: Use process.env.PORT for production
-server.listen(process.env.PORT || 5001, () => console.log(`Server running on port ${process.env.PORT || 5001}`));
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
+
+// Start server
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
