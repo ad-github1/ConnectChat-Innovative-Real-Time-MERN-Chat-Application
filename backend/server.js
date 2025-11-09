@@ -9,9 +9,14 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: '*' } });  // Temporarily keep '*' for testing; update to your frontend URL later
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// Updated: Remove deprecated Mongoose options
+mongoose.connect(process.env.MONGO_URI);
+
+// Optional: Add a connection check for debugging
+mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
+mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
 
 app.use(cors());
 app.use(express.json());
@@ -40,4 +45,5 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(5001, () => console.log('Server running on port 5001'));
+// Updated: Use process.env.PORT for production
+server.listen(process.env.PORT || 5001, () => console.log(`Server running on port ${process.env.PORT || 5001}`));
