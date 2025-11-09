@@ -1,6 +1,6 @@
 
 
-# ![ConnectChat Logo](https://via.placeholder.com/40) ConnectChat | Real-Time MERN Chat Application
+# ConnectChat | Real-Time MERN Chat Application
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-v18+-green)](https://nodejs.org/) [![React](https://img.shields.io/badge/React-v18+-blue)](https://reactjs.org/) [![MongoDB](https://img.shields.io/badge/MongoDB-v6+-brightgreen)](https://www.mongodb.com/)
 
