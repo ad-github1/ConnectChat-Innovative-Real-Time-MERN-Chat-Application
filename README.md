@@ -10,9 +10,6 @@
 
 ---
 
-##  Demo
-
-![ConnectChat Demo](https://via.placeholder.com/800x400?text=GIF+Demo+Placeholder)
 
 > *Real-time chat interactions, online status, and messaging in action (GIF placeholder)*
 
@@ -60,7 +57,7 @@ ConnectChat/
 
 ---
 
-## ⚡ Setup Instructions
+##  Setup Instructions
 
 > ⚠️ App under development; ready for local testing.
 
