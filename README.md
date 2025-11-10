@@ -8,12 +8,7 @@
 
 [GitHub Repository](https://github.com/ad-github1/ConnectChat-Innovative-Real-Time-MERN-Chat-Application)
 
----
 
-
-> *Real-time chat interactions, online status, and messaging in action (GIF placeholder)*
-
----
 
 ##  Features
 
